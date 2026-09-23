@@ -1,0 +1,33 @@
+name: Domain ownership test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # handmatig triggeren via Actions-tab
+
+env:
+  DOMAIN: qacompany.com
+  EXPECTED_TEXT: "Jelle, John, Jurgen, Ad, Dirk"
+
+jobs:
+  test-domain:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if domain is reachable
+        run: |
+          echo "Testing https://${DOMAIN}"
+          curl -sSf "https://${DOMAIN}" > index.html || \
+            (echo "❌ Domain ${DOMAIN} is not reachable via HTTPS" && exit 1)
+
+      - name: Verify expected content
+        run: |
+          if grep -q "${EXPECTED_TEXT}" index.html; then
+            echo "✅ Domain ${DOMAIN} serves expected content"
+          else
+            echo "❌ Expected text not found on ${DOMAIN}"
+            exit 1
+          fi
